@@ -72,48 +72,92 @@
       margin-right: 5px;
     }
   </style>
-  <script>
-    $(document).ready(function () {
-      let url = "http://spartacodingclub.shop/sparta_api/seoulair"
-      fetch(url).then(res => res.json()).then(data => {
-        let city = data['RealtimeCityAir']['row'][0]['IDEX_NM'];
-        
-        $('#msg').text(city); //텍스트를 바꾸는 작업. 
 
-        
-      })
-    })
+  <script type="module">
+    //module이라고 하는 순간 script가 가장 나중에 호출됨.
 
-    function openclose() {
-      $('#postingbox').toggle();
-    }
+    // Firebase SDK 라이브러리 가져오기
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    function makeCard() {
+
+    // Firebase 구성 정보 설정
+    const firebaseConfig = {
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      //보안상 firebase api 키는 지웠습니다.
+    };
+
+
+
+    // Firebase 인스턴스 초기화
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    //해당 id가 클릭이 되면 밑에 2줄이 실행된다.
+    $("#postingbtn").click(async function () { //어떤 id값에다 click을 담아준다.
       let image = $('#image').val();
       let title = $('#title').val();
       let content = $('#content').val();
       let date = $('#date').val();
 
-      let temp_html = `        <div class="card">
-          <img
-            src=${image}
-            class="card-img-top"
-            alt="..."
-          />
-          <div class="card-body">
-            <h5 class="card-title">${title}</h5>
-            <p class="card-text">
-              ${content}
-            </p>
-          </div>
-          <div class="card-footer">
-            <small class="text-body-secondary">${date}</small>
-          </div>
-        </div>`
-      $('#card').append(temp_html);
-    }
+      //데이터를 가져와서 딕셔너리화
+      let doc = {
+        'image': image,
+        'title': title,
+        'content': content,
+        'date': date
+      };
+      await addDoc(collection(db, "albums"), doc); //이것을 실행해!
+      alert('저장 완료!'); //알림창 띄우기
+      window.location.reload(); //화면 새로고침
+    })
 
-   
+
+    //해당 id가 클릭이 되면 밑에 2줄이 실행된다.
+    $("#savebtn").click(async function () { //어떤 id값에다 click을 담아준다.
+      $('#postingbox').toggle();
+    })
+
+
+
+    let url = "http://spartacodingclub.shop/sparta_api/seoulair"
+    fetch(url).then(res => res.json()).then(data => {
+      let city = data['RealtimeCityAir']['row'][0]['IDEX_NM'];
+      $('#msg').text(city); //텍스트를 바꾸는 작업. 
+
+    })
+
+    //데이터 읽기 스켈레톤 코드
+    let docs = await getDocs(collection(db, "albums"));
+    docs.forEach((doc) => {
+      let row = doc.data();
+
+      let image = row['image'];
+      let title = row['title'];
+      let content = row['content'];
+      let date = row['date'];
+
+      let temp_html = `
+  <div class="col-md-4 mb-4"> 
+    <div class="card">
+      <img src="${image}" class="card-img-top" alt="..." />
+      <div class="card-body">
+        <h5 class="card-title">${title}</h5>
+        <p class="card-text">${content}</p>
+      </div>
+      <div class="card-footer">
+        <small class="text-body-secondary">${date}</small>
+      </div>
+    </div>
+  </div>`;
+
+      $('#card').append(temp_html);
+
+    });
+
+
   </script>
 </head>
 
@@ -121,8 +165,8 @@
   <!--표지-->
   <div class="mytitle">
     <h1>나만의 추억앨범</h1>
-    <p>현재 서울의 미세먼지: <span id = "msg">나쁨</span></p>
-    <button onclick="openclose()">추억 저장하기</button>
+    <p>현재 서울의 미세먼지: <span id="msg">나쁨</span></p>
+    <button id="savebtn">추억 저장하기</button>
   </div>
 
   <!--포스팅 박스-->
@@ -141,82 +185,20 @@
     </div>
     <div class="form-floating mb-3">
       <input type="email" class="form-control" id="date" placeholder="앨범이미지" />
-      <label for="floatingInput">앨범 이미지</label>
+      <label for="floatingInput">앨범 날짜</label>
     </div>
     <div class="mybtn">
-      <button onclick="makeCard()" type="button" class="btn btn-dark">기록하기</button>
+      <button id="postingbtn" type="button" class="btn btn-dark">기록하기</button>
       <button type="button" class="btn btn-outline-dark">닫기</button>
     </div>
   </div>
 
   <!--카드 목록-->
   <div class="mycards">
-    <div id="card" class="card-group">
-      <div class="card">
-        <img
-          src="https://images.unsplash.com/photo-1446768500601-ac47e5ec3719?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1446&q=80"
-          class="card-img-top" alt="..." />
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">
-            This is a wider card with supporting text below as a natural
-            lead-in to additional content. This content is a little bit
-            longer.
-          </p>
-        </div>
-        <div class="card-footer">
-          <small class="text-body-secondary">Last updated 3 mins ago</small>
-        </div>
-      </div>
-      <div class="card">
-        <img
-          src="https://images.unsplash.com/photo-1446768500601-ac47e5ec3719?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1446&q=80"
-          class="card-img-top" alt="..." />
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">
-            This card has supporting text below as a natural lead-in to
-            additional content.
-          </p>
-        </div>
-        <div class="card-footer">
-          <small class="text-body-secondary">Last updated 3 mins ago</small>
-        </div>
-      </div>
-      <div class="card">
-        <img
-          src="https://images.unsplash.com/photo-1446768500601-ac47e5ec3719?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1446&q=80"
-          class="card-img-top" alt="..." />
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">
-            This is a wider card with supporting text below as a natural
-            lead-in to additional content. This card has even longer content
-            than the first to show that equal height action.
-          </p>
-        </div>
-        <div class="card-footer">
-          <small class="text-body-secondary">Last updated 3 mins ago</small>
-        </div>
-      </div>
-      <div class="card">
-        <img
-          src="https://images.unsplash.com/photo-1446768500601-ac47e5ec3719?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1446&q=80"
-          class="card-img-top" alt="..." />
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">
-            This is a wider card with supporting text below as a natural
-            lead-in to additional content. This card has even longer content
-            than the first to show that equal height action.
-          </p>
-        </div>
-        <div class="card-footer">
-          <small class="text-body-secondary">Last updated 3 mins ago</small>
-        </div>
-      </div>
-    </div>
+    <div id="card" class="row"></div> <!--여기서 row 역할-->
+
   </div>
+
 </body>
 
 </html>
