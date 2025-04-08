@@ -73,6 +73,17 @@
     }
   </style>
   <script>
+    $(document).ready(function () {
+      let url = "http://spartacodingclub.shop/sparta_api/seoulair"
+      fetch(url).then(res => res.json()).then(data => {
+        let city = data['RealtimeCityAir']['row'][0]['IDEX_NM'];
+        
+        $('#msg').text(city); //텍스트를 바꾸는 작업. 
+
+        
+      })
+    })
+
     function openclose() {
       $('#postingbox').toggle();
     }
@@ -99,8 +110,10 @@
             <small class="text-body-secondary">${date}</small>
           </div>
         </div>`
-        $('#card').append(temp_html);
+      $('#card').append(temp_html);
     }
+
+   
   </script>
 </head>
 
@@ -108,6 +121,7 @@
   <!--표지-->
   <div class="mytitle">
     <h1>나만의 추억앨범</h1>
+    <p>현재 서울의 미세먼지: <span id = "msg">나쁨</span></p>
     <button onclick="openclose()">추억 저장하기</button>
   </div>
 
